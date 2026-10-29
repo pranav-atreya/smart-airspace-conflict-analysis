@@ -1,0 +1,144 @@
+erDiagram
+    role ||--o{ app_user : "assigns roles to"
+    aircraft ||--o{ flight : "operates"
+    airport ||--o{ flight : "departure airport"
+    airport ||--o{ flight : "arrival airport"
+    flight ||--o{ flight_waypoint : "has route entries"
+    waypoint ||--o{ flight_waypoint : "is used by routes"
+    flight ||--o{ flight_position : "has recorded positions"
+    restricted_airspace ||--o{ notam : "is referenced by"
+    flight ||--o{ incident : "has incidents"
+    flight ||--o{ conflict_event : "primary flight"
+    flight ||--o{ conflict_event : "secondary flight"
+    restricted_airspace ||--o{ conflict_event : "associated airspace"
+
+    role {
+        serial role_id PK
+        varchar role_name UK
+        text description
+    }
+
+    app_user {
+        serial user_id PK
+        integer role_id FK
+        varchar full_name
+        varchar email UK
+        varchar password_hash
+        boolean is_active
+        timestamp created_at
+    }
+
+    aircraft {
+        serial aircraft_id PK
+        varchar registration_no UK
+        varchar aircraft_type
+        varchar model
+        varchar operator_name
+        integer max_altitude_ft
+    }
+
+    flight {
+        serial flight_id PK
+        varchar flight_number
+        integer aircraft_id FK
+        integer departure_airport FK
+        integer arrival_airport FK
+        timestamp scheduled_departure
+        timestamp scheduled_arrival
+        timestamp actual_departure
+        timestamp actual_arrival
+        varchar status
+    }
+
+    airport {
+        serial airport_id PK
+        varchar iata_code UK
+        varchar icao_code UK
+        varchar airport_name
+        varchar city
+        varchar country
+        numeric latitude
+        numeric longitude
+    }
+
+    waypoint {
+        serial waypoint_id PK
+        varchar waypoint_code UK
+        numeric latitude
+        numeric longitude
+    }
+
+    flight_waypoint {
+        integer flight_id PK,FK
+        integer waypoint_id PK,FK
+        integer sequence_no UK
+        integer planned_altitude_ft
+    }
+
+    flight_position {
+        serial position_id PK
+        integer flight_id FK
+        timestamp recorded_at
+        numeric latitude
+        numeric longitude
+        integer altitude_ft
+        numeric ground_speed_kts
+        numeric heading_deg
+    }
+
+    restricted_airspace {
+        serial airspace_id PK
+        varchar airspace_code UK
+        varchar airspace_name
+        varchar restriction_type
+        numeric center_latitude
+        numeric center_longitude
+        numeric radius_nm
+        integer lower_altitude_ft
+        integer upper_altitude_ft
+        timestamp valid_from
+        timestamp valid_to
+    }
+
+    notam {
+        serial notam_id PK
+        varchar notam_number UK
+        integer airspace_id FK
+        varchar title
+        text notam_text
+        timestamp issued_at
+        timestamp effective_from
+        timestamp effective_to
+        varchar status
+        vector embedding
+        varchar embedding_model
+        timestamp embedding_generated_at
+    }
+
+    incident {
+        serial incident_id PK
+        integer flight_id FK
+        varchar incident_type
+        varchar incident_title
+        text description
+        timestamp occurred_at
+        varchar severity
+        vector embedding
+        varchar embedding_model
+        timestamp embedding_generated_at
+    }
+
+    conflict_event {
+        serial conflict_id PK
+        integer primary_flight_id FK
+        integer secondary_flight_id FK
+        integer airspace_id FK
+        timestamp detected_at
+        varchar conflict_type
+        varchar severity
+        text description
+        numeric minimum_distance_nm
+        integer altitude_difference_ft
+        boolean resolved
+        timestamp resolved_at
+    }
